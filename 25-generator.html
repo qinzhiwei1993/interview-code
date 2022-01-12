@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generator</title>
+</head>
+
+<body>
+    <h1>Generator</h1>
+    <script>
+        function* y() {
+            console.log('hhhh')
+            yield 123 + 123
+            console.log('aaaa')
+            yield 2222
+            yield 444
+        }
+
+        const hw = y()
+        console.log(hw.next())
+        console.log([...hw])
+
+        var obj = [1, 2, 3]
+
+        // Generator遍历器生成函数
+        let obj2 = {}
+        obj2[Symbol.iterator] = function* () {
+            yield 1
+            yield 2
+            yield 3
+        }
+        console.log([...obj2], obj2)
+
+        //for...of自动遍历Generator函数生成的遍历器对象
+        function* foo3() {
+            console.log('for...of yield: 1')
+            yield 1
+            console.log('for...of yield: 2')
+            yield 2
+            console.log('for...of yield: 3')
+            yield 3
+            console.log('for...of yield: 4')
+            yield 4
+            console.log('for...of yield: 5')
+            return 5
+        }
+
+        const gen3 = foo3()
+        // console.log(gen3)
+        for (let v of gen3) {
+            console.log('v', v)
+        }
+
+        // 状态机
+
+        function* clock4() {
+            while (true) {
+                yield console.log('tick')
+                yield console.log('tock')
+            }
+        }
+
+        const gen4 = clock4()
+
+        gen4.next()
+        gen4.next()
+        gen4.next()
+        gen4.next()
+        gen4.next()
+
+
+        //  自动执行器：Generator函数的自动执行需要一种机制，在异步操作有了结果，将执行权自动交回
+        //  有两种方案可以实现这种机制：
+        //  1.回调函数：将异步操作进行封装，暴露回调函数，在回调函数中交回执行权
+        //  2.Promise对象：将一部操作使用Promise进行封装，在.then方法中交回执行权
+
+        // 方案1：回调函数
+
+        function request(url, callback) {
+            setTimeout(() => {
+                callback(url)
+            }, 2000)
+        }
+
+        // 柯力化回调请求方法
+        const curry = function (fn) {
+            return function (url) {
+                return function (callback) {
+                    fn.call(this, url, callback)
+                }
+            }
+
+        }
+
+        const requestCallbacked = curry(request)
+        // 获取数据
+        function* getData() {
+            const r1 = yield requestCallbacked('gen test 1')
+
+            const r2 = yield requestCallbacked('gen test 2')
+            const r3 = yield requestCallbacked('gen test 3')
+            console.log('r1, r2, r3', r1, r2, r3)
+        }
+
+        // 手动执行
+        const gen5 = getData()
+        // gen5.next().value(data1 => {
+        //     gen5.next(data1).value(data2 => {
+        //         gen5.next(data2).value(data3 => {
+        //             gen5.next(data3)
+        //         })
+        //     })
+        // })
+
+        // 自动执行器
+
+        function run(fn) {
+            const gen = fn()
+            function next(data) {
+                const result = gen.next(data)
+                if (result.done) return
+                result.value(next)
+            }
+            next()
+        }
+
+        // run(getData)
+
+        // 方案2：Promise封装，在.then方法中交回执行权
+
+        // 获取数据
+        function* getData2() {
+            const r1 = yield Promise.resolve('gen test 1')
+
+            const r2 = yield Promise.resolve('gen test 2')
+            const r3 = yield Promise.resolve('gen test 3')
+            console.log('r1, r2, r3', r1, r2, r3)
+        }
+
+        // 手动执行
+
+        // const gen6 = getData2()
+        // gen6.next().value.then(data1 => {
+        //     return gen6.next(data1).value
+        // }).then(data2 => {
+        //     return gen6.next(data2).value
+        // }).then(data3 => {
+        //     return gen6.next(data3).value
+        // })
+
+        // 自动执行
+
+        function run2(fn) {
+            const gen = fn()
+
+            function next(data) {
+                const result = gen.next(data)
+                if (result.done) return result.value
+                result.value.then(next)
+            }
+
+            next()
+        }
+
+        run2(getData2)
+
+        // async函数原理：利用函数封装generator函数和自动执行器
+        function run(generator) {
+            const gen = generator()
+            // async 最终返回的是promise对象
+            return new Promise((resolve, reject) => {
+                // 自动执行器
+                function next(data) {
+                    try {
+                        var result = gen.next(data);
+                    } catch (e) {
+                        return reject(e);
+                    }
+
+                    if (result.done) {
+                        return resolve(result.value)
+                    };
+
+                    var value = toPromise(result.value);
+
+                    value.then(function (data) {
+                        next(data);
+                    }, function (e) {
+                        reject(e)
+                    });
+                }
+
+                next()
+            })
+        }
+
+        function isPromise(obj) {
+            return 'function' == typeof obj.then;
+        }
+
+        function toPromise(obj) {
+            if (isPromise(obj)) return obj;
+            if ('function' == typeof obj) return thunkToPromise(obj);
+            return obj;
+        }
+
+        function thunkToPromise(fn) {
+            return new Promise(function (resolve, reject) {
+                fn(function (err, res) {
+                    if (err) return reject(err);
+                    resolve(res);
+                });
+            });
+        }
+
+        async function test() {
+            await 222
+            return 222
+        }
+
+        test().then(console.log)
+
+
+
+
+    </script>
+</body>
+
+</html>

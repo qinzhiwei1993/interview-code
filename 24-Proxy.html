@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Proxy</title>
+</head>
+
+<body>
+    <h1>Proxy</h1>
+    <script>
+        let obj = {
+            a: 1,
+            b: 2,
+            c: [1, 2, 3],
+            fun() {
+                console.log('fun this', this.c)
+            }
+        }
+        const proxy = new Proxy(obj, {
+            // get: function (target, propKey, receiver) {
+            //     // console.log(target, propKey, receiver)
+            //     console.log('get key: '+ propKey)
+            //     return target[propKey]
+            // },
+            set(target, propKey, value, receiver) {
+                console.log('set: ' + propKey)
+                return target[propKey] = value
+            }
+        })
+
+        console.log('proxy.a: ', proxy.a)
+        proxy.b = 3
+        console.log(proxy)
+        let c = proxy.c
+        proxy.fun()
+
+        // 无法拦截数组
+        // let obj = { a: 1, b: 2, c: [1, 2, 3] }
+        // Object.defineProperty(obj, 'c', {
+        //     enumerable: true,
+        //     configurable: true,
+        //     get(target){
+        //         return obj.c
+        //     },
+        //     set(value){
+        //         console.log('value', value)
+        //         obj.c = value
+        //     }
+        // })
+
+        // obj.c.push(4)
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Promise</title>
+</head>
+
+<body>
+    <h1>手写Promise</h1>
+    <script>
+        // Promise/A+规范特征
+        // 1.有3种状态pending, fulfilled, rejected，有两种状态变更pending => fulfilled 和 pending => rejected
+        // 2.new Promise实例化接受一个参数，这个参数是个函数，这个函数是立即执行的
+        // 3.这个函数中有两个参数，分别是resovle和reject，用来变更Promise的状态
+        // 4.有then方法，接受两个参数，一个是成功的回调，一个是失败的回调
+        // 5.Promise有一个value保存成功的值，在调用.then的时候如果成功，执行onFulFilled函数，返回value值。还有一个reason值，保存失败原因，在执行onRejected的时候返回
+        // 6.then方法返回一个新的Promise实例，实现.then的的链式调用。且每个then方法参数都有默认值,已达到值穿透效果
+        (() => {
+            const PENDING = 'PENDING'
+            const FULFILLED = 'FULFILLED'
+            const REJECTED = 'REJECTED'
+
+            class Promise {
+                constructor(exectuor) {
+                    // 存放成功状态的值，默认为 undefined
+                    this.value = null
+                    // 存放失败状态的值，默认为 undefined
+                    this.reason = null
+                    // 默认状态为 PENDING
+                    this.status = PENDING
+
+                    // 成功回调
+                    this.onFulFilledFunctions = []
+                    // 失败回调
+                    this.onRejectedFunctions = []
+
+                    // 改变Promise的状态为FULFILLED，并把成功的值保存到value
+                    const resolve = (value) => {
+                        // 避免执行两次
+                        if (this.status === PENDING) {
+                            this.status = FULFILLED
+                            this.value = value
+                            for (let fn of this.onFulFilledFunctions) {
+                                fn()
+                            }
+                        }
+                    }
+
+                    // 改变Promise状态为REJECTED，并把失败原因保存到reason
+                    const reject = (reason) => {
+                        // 避免执行两次
+                        if (this.status === PENDING) {
+                            this.status = REJECTED
+                            this.reason = reason
+                            for (let fn of this.onRejectedFunctions) {
+                                fn()
+                            }
+                        }
+                    }
+
+                    try {
+                        // 立即执行，将 resolve 和 reject 函数传给使用者  
+                        exectuor.call(this, resolve, reject)
+                    } catch (error) {
+                        // 发生异常时执行失败逻辑
+                        reject(error)
+                    }
+                }
+
+                then(onFulFilled, onRejected) {
+                    // 设置回到函数的默认值，达到值穿透效果
+                    onFulFilled = typeof onFulFilled === 'function' ? onFulFilled : v => v
+                    onRejected = typeof onRejected === 'function' ? onRejected : err => { throw err }
+
+                    // 这里是简版，实际情况需要考虑回到函数本身是否为Promise的情况，以及是否多次调用等
+                    const promise2 = new Promise((resolve, reject) => {
+                        if (this.status === FULFILLED) {
+                            try {
+                                resolve(onFulFilled(this.value))
+                            } catch (error) {
+                                reject(error)
+                            }
+                        }
+
+                        if (this.status === REJECTED) {
+                            try {
+                                resolve(onRejected(this.reason))
+                            } catch (error) {
+                                reject(error)
+                            }
+                        }
+
+                        if (this.status === PENDING) {
+                            this.onFulFilledFunctions.push(() => {
+                                try {
+                                    resolve(onFulFilled(this.value))
+                                } catch (error) {
+                                    reject(error)
+                                }
+                            })
+                            this.onRejectedFunctions.push(() => {
+                                try {
+                                    resolve(onRejected(this.reason))
+                                } catch (error) {
+                                    reject(error)
+                                }
+                            })
+                        }
+                    })
+                    return promise2
+                }
+            }
+
+            Promise.resolve = (primitive) => {
+                return new Promise(resolve => resolve(primitive))
+            }
+
+            Promise.reject = (primitive) => {
+                return new Promise((resolve, reject) => reject(primitive))
+            }
+
+            // all：并发 特性：一个失败全部失败，全部成功，按顺序返回值
+            Promise.all = (promises) => {
+                return new Promise((resolve, reject) => {
+                    let result = [], index = 0
+                    for (let i = 0; i < promises.length; i++) {
+                        const promise = promises[i]
+                        // 传入值为promise类型
+                        // console.log(typeof promise, promise instanceof Promise)
+                        if (typeof promise === 'object' && promise instanceof Promise) {
+                            promise.then(value => {
+                                result[i] = value;
+                                if (index++ === promises.length - 1) resolve(result)
+                            }, reject)
+                        } else {
+                            result.push(promise)
+                        }
+                    }
+                })
+            }
+
+            // race：以最先响应的确定最终状态
+
+            Promise.race = (promises) => {
+                return new Promise((resolve, reject) => {
+                    for (let promise of promises) {
+                        if (promise && typeof promise.then === 'function') {
+                            promise.then(resolve, reject)
+                        } else {
+                            resolve(promise)
+                        }
+                    }
+                })
+            }
+
+            // catch: 捕获错误
+            Promise.prototype.catch = function (callback) {
+                return this.then(null, callback)
+            }
+
+            // finally: 状态变更的回调，无论成功失败
+            Promise.prototype.finally = function (callback) {
+                return this.then((value) => {
+                    // 需要处理then返回的是Promise的情况，这里暂不支持
+                    callback()
+                    return value
+                    // return Promise.resolve(callback()).then(()=>value)
+                }, (reason) => {
+                    return Promise.resolve(callback()).then(() => { throw reason })
+                })
+            }
+
+
+            Promise.resolve('Promise.resolve').then(console.log)
+            Promise.reject('Promise.reject').then(console.log, console.log)
+
+            const p1 = function () {
+                return new Promise(resolve => {
+                    setTimeout(() => {
+                        resolve('p1')
+                    }, 1000)
+                })
+            }
+
+            const p2 = function () {
+                return new Promise(resolve => resolve('p2'))
+            }
+
+            const p3 = function () {
+                return new Promise((resolve, reject) => reject('p3'))
+            }
+
+            const all = Promise.all([p1(), p2(), p3()])
+            all.then(console.log, console.log)
+
+            const race = Promise.race([p1(), p2(), p3()])
+            race.then(console.log, console.log)
+
+            p3().then(console.log).then().catch(console.log)
+            p3().catch(console.log)
+
+            p1().finally(() => { console.log('11') }).then().then(console.log)
+
+
+        })()
+
+        function promisify(fn) {
+            return function () {
+                let args = arguments
+                return new Promise((resolve, reject) => {
+                    args.push((err, value) => {
+                        if(err){
+                            return reject(value)
+                        }
+                        resolve(value)
+                    })
+                    fn.apply(this, args)
+                })
+            }
+        }
+    </script>
+
+</body>
+
+</html>

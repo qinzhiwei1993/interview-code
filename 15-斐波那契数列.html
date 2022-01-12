@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>斐波那契数列</title>
+</head>
+
+<body>
+    <h1>斐波那契数列</h1>
+    <script>
+        var count = 0
+        function fb(n) {
+            count++
+            if (n === 1) return 0
+            if (n === 2) return 1
+            return n < 2 ? n : fb(n - 1) + fb(n - 2)
+        }
+
+        console.log(fb(8))
+        console.log('count', count)
+
+        function a(p){
+            console.log(arguments)
+            console.log(a.caller)
+            console.log(arguments.callee)
+            console.log('p', p)
+        }
+
+        function b(){
+            a('pppp')
+        }
+
+        b()
+    </script>
+</body>
+
+</html>

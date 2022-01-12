@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>乱序</title>
+</head>
+
+<body>
+    <h1>乱序</h1>
+    <script>
+        // Math.random & Math.sort
+        function shuffle(arr) {
+            return arr.sort(() => Math.random() - 0.5)
+        }
+
+        // 测试1万次 数组 arr: [1,2,3,4,5]，乱序后占据最后一个位置的每个数据的概率
+
+        function demo1() {
+            var times = [0, 0, 0, 0, 0]
+            for (var i = 0; i < 10000; i++) {
+                var arr = [1, 2, 3, 4, 5]
+                var shuffleArr = shuffle(arr)
+                times[shuffleArr[4] - 1]++
+            }
+            console.log(times) //  [2433, 720, 2146, 1908, 2793]  几个数据的在该位置出现的概率相差还是很大的
+        }
+
+        demo1()
+
+
+        function shuffle2(a) {
+            var j, x, i;
+            for (i = a.length; i; i--) {
+                j = Math.floor(Math.random() * i);
+                x = a[i - 1];
+                a[i - 1] = a[j];
+                a[j] = x;
+            }
+            return a
+        }
+
+        // 测试1万次 数组 arr: [1,2,3,4,5]，乱序后占据最后一个位置的每个数据的概率
+
+        function demo2() {
+            var times = [0, 0, 0, 0, 0]
+            for (var i = 0; i < 10000; i++) {
+                var arr = [1, 2, 3, 4, 5]
+                var shuffleArr = shuffle2(arr)
+                times[shuffleArr[4] - 1]++
+            }
+            console.log(times) //  [1943, 2002, 2045, 1938, 2072]
+        }
+
+        demo2()
+    </script>
+</body>
+
+</html>

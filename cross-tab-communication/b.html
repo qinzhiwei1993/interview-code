@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>跨页面通信B</title>
+    <style>
+        .box {
+            border: 1px solid red;
+            padding: 5px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>跨页面通信B</h1>
+
+    <div class="box">
+        <h3>1.window.open & window.opener</h3>
+        <button onclick="sendMessage1()">向进A页面发送消息: Hello A，I am B</button>
+        <p id="message1">收到来信:</p>
+    </div>
+    <div class="box">
+        <h3>2.广播的方式 BoradcastChannel</h3>
+        <button onclick="sendMessage2()">向进A页面发送消息: Hello A，I am B-BoradcastChannel</button>
+        <p id="message2">收到来信:</p>
+    </div>
+    <script>
+        // 通信方式2： 广播的方式 BroadcastChannel
+        const bc = new BroadcastChannel('CYN')
+
+        bc.onmessage = function (e) {
+            const data = e.data;
+            message2.innerHTML = '收到来信: ' + data.test
+        };
+
+        function sendMessage2() {
+            bc.postMessage({test: 'Hello A，I am B-BoradcastChannel'});
+        } 
+    </script>
+    <script>
+        // 通信方式1 window.open & window.opener
+        window.addEventListener('message', function (e) {
+            message1.innerHTML = '收到来信：' + e.data.test
+        })
+        function sendMessage1() {
+            if (window.opener) {
+                window.opener.postMessage({ test: 'Hello A，I am B' })
+            }
+        }
+    </script>
+</body>
+
+</html>

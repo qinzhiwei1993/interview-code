@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>浏览器端数据库-indexedDB 存储大量结构化数据</title>
+</head>
+
+<body>
+    <script>
+        // 打开数据库
+        var db;
+        // 打开数据库,open还有第二个参数版本号
+        var request = window.indexedDB.open('myTestDatabase');
+        // 数据库打开成功后
+        request.onsuccess = function (event) {
+            // 存储数据结果,后面所有的数据库操作都离不开它。
+            db = request.result;
+            console.log('onsuccess ======', event)
+
+        }
+        request.onerror = function (event) {
+            console.log("Why didn't you allow my web app to use IndexedDB?!", event)
+        }
+
+        // 数据库首次创建版本，或者window.indexedDB.open传递的新版本（版本数值要比现在的高）
+        request.onupgradeneeded = function (event) {
+            //之前咱们不是在success中得到了db了么，为什么还要在这获取，
+            //因为在当前事件函数执行后才会去执行success事件
+            var db = event.target.result;
+
+            // 创建一个对象存储空间，keyPath是id，keyGenerator是自增的
+            var objectStore = db.createObjectStore('testItem', { keyPath: 'id', autoIncrement: true });
+            // 创建一个索引来通过id搜索，id是自增的，不会有重复，所以可以用唯一索引
+            objectStore.createIndex('id', 'id', { unique: true })
+
+            objectStore.createIndex('name', 'name');
+            objectStore.createIndex('age', 'age');
+
+            //添加一条信息道数据库中
+            objectStore.add({ name: 'cfangxu', age: '27' });
+        }
+
+        var timer = setInterval(function () {
+            if (db) {
+                clearInterval(timer);
+                // 新建一个事务
+                var transaction = db.transaction(['testItem'], 'readwrite');
+                // 打开一个存储对象
+                var objectStore = transaction.objectStore('testItem');
+                // 添加数据到对象中
+                objectStore.add({ name: 'xiaoming', age: '12' });
+                objectStore.add({ name: 'xiaolong', age: '20' });
+                console.log(db)
+
+                // 读取数据
+                var transaction2 = db.transaction(['testItem'], 'readwrite');
+
+                var objectStore2 = transaction2.objectStore('testItem');
+
+                var getRquest = objectStore2.get(1);
+                getRquest.onsuccess = function (event) {
+                    console.log(getRquest.result);
+                }
+
+                // 修改数据
+                var transaction3 = db.transaction(['testItem'], 'readwrite');
+
+                var objectStore3 = transaction3.objectStore('testItem');
+
+                var getRquest = objectStore3.put({ name: 'chenfangxu', age: '27', id: 1 });
+                // 修改了id为1的那条数据
+
+                // 删除数据
+                var transaction4 = db.transaction(['testItem'], 'readwrite');
+
+                var objectStore4 = transaction4.objectStore('testItem');
+
+                var getRquest = objectStor4e.delete(1);
+                // 删除了id为1的那条数据
+            }
+        }, 100)
+
+
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>跨页面通信A</title>
+    <style>
+        .box {
+            border: 1px solid red;
+            padding: 5px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>跨页面通信A</h1>
+
+    <div class="box">
+        <h3>1.window.open & window.opener</h3>
+        <button onclick="openNewWin1()">window.open & window.opener</button>
+        <button onclick="sendMessage1()">向B页面发送消息: Hello B，I am A</button>
+        <p id="message1">收到来信:</p>
+    </div>
+    <div class="box">
+        <h3>2.广播的方式 BoradcastChannel</h3>
+        <button onclick="sendMessage2()">向B页面发送消息: Hello B，I am A-BoradcastChannel</button>
+        <p id="message2">收到来信:</p>
+    </div>
+    <div class="box">
+        <h3>3.广播的方式 storage</h3>
+    </div>
+    <div class="box">
+        <h3>4.广播的方式 Service Worker</h3>
+    </div>
+    <div class="box">
+        <h3>5.共享存储状态 cookie</h3>
+    </div>
+    <div class="box">
+        <h3>6.共享存储状态 indexDB</h3>
+    </div>
+    <div class="box">
+        <h3>7.共享存储状态 Shared Worker</h3>
+    </div>
+    <div class="box">
+        <h3>8.基于服务端的桥梁通信  webSocket ...</h3>
+    </div>
+    <div class="box">
+        <h3>9.跨页面 使用看不见的iframe 搭建通信的桥梁</h3>
+    </div>
+    <script>
+        // 通信方式2： 广播的方式 BroadcastChannel
+        const bc = new BroadcastChannel('CYN')
+
+        bc.onmessage = function (e) {
+            const data = e.data;
+            message2.innerHTML = '收到来信: ' + data.test
+        };
+
+        function sendMessage2() {
+            bc.postMessage({test: 'Hello B，I am A-BoradcastChannel'});
+        }        
+    </script>
+    <script>
+        // 通信方式1 window.open & window.opener
+        function openNewWin1() {
+            var b = window.b = window.open('./b.html')
+            window.addEventListener('message', function (e) {
+                console.log(e.data)
+                message1.innerHTML = '收到来信: ' + e.data.test
+            })
+        }
+        function sendMessage1() {
+            if (!window.b) {
+                return alert('请先打开B页面')
+            }
+            window.b.postMessage({ test: 'Hello B，I am A' })
+        }
+    </script>
+</body>
+
+</html>

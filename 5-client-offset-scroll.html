@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        body{
+            display: flex;
+            justify-content: center;
+            padding-top: 20px;
+        }
+        .container{
+            width: 500px;
+            height: 500px;
+            padding: 24px;
+            border: 10.5px solid red;
+            background-color: yellow;
+            box-sizing: border-box;
+            transform: translate(20px);
+        }
+        .scroll{
+            height: 1000px;
+            width: 200px;
+            background-color: green;
+        }
+    </style>
+</head>
+<body>
+    <div id="container" class="container">
+        <div class="scroll" id="scroll_1"></div>
+    </div>
+    <script>
+        // ========以 client、offset 开头的都是只读属性========================================
+        // clientTop: 11 
+        // 元素上部边框宽度，不带单位，取四舍五入
+        console.log(container.clientTop)
+        // getComputedStyle(container,null).borderTopWidth: 10.5px 
+        // 元素上边框宽度，精确值，带单位
+        console.log(getComputedStyle(container,null).borderTopWidth)
+        // 元素左边框宽度
+        console.log(container.clientLeft)
+        // 元素内部宽度、高度，包括padding
+        console.log(container.clientWidth)
+        console.log(container.clientHeight)
+        // 返回元素宽度：内容+padding+border+滚动条
+        console.log(container.offsetWidth)
+        // 当前元素相对于父元素的内边距的距离
+        console.log(container.offsetTop)
+        console.log(container.scrollHeight)
+        console.log(container.scrollTop)
+        console.log(container.getBoundingClientRect())
+        console.log(scroll_1.getBoundingClientRect())
+        console.log(getComputedStyle(scroll_1))
+
+
+    </script>
+</body>
+</html>

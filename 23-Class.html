@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Class</title>
+</head>
+
+<body>
+    <h1>Class 基本用法</h1>
+    <script>
+        class A {
+            static classMethod(){
+                return 'classMethod A'
+            }
+        }
+        class Point extends A {
+            static classProp = 1
+            _count = 2
+            static classMethod() {
+                console.log(super.classMethod())
+            }
+            test() { }
+            say() { }
+
+            get prop() {
+                return 'getter';
+            }
+            set prop(value) {
+                console.log('setter: ' + value);
+            }
+        }
+
+        let a = new Point()
+        console.log('a的原型', Object.getPrototypeOf(a))
+
+        // class类等价于构造函数的语法糖
+        console.log(typeof Point)
+        console.log(Point.__proto__, Point.__proto__ === Function.__proto__)
+        console.log(Point === Point.prototype.constructor)
+        console.log(Point.prototype)
+        // 内部方法都是定义在原型上，且不可枚举
+        console.log(Object.keys(Point.prototype))
+        console.log(Object.getOwnPropertyNames(Point.prototype))
+        console.log(Object.getOwnPropertyDescriptor(Point.prototype, 'prop'))
+
+        Point.classMethod()
+        console.log(Point.classProp)
+
+    </script>
+</body>
+
+</html>

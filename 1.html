@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BFC-块级格式化上下文</title>
+    <style>
+        .box {
+            width: 100px;
+            height: 100px;
+            display: inline-block;
+        }
+
+
+        .item1 {
+            color: red;
+            background-color: pink;
+        }
+
+        .item2 {
+            margin-left: -100px;
+            background-color: orange;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="box item1">item11111</div>
+    <div class="box item2">item22222</div>
+    <script>
+        var animal = function (name, age) {
+            this.name = name
+            this.age = age
+        }
+        // console.log(animal.__proto__ === Function.__proto__)
+
+        animal.prototype.speak = () => {
+            console.log('喵喵~~')
+        }
+
+        var cat = new animal('cat', '2')
+        console.log(cat)
+        console.log(cat.__proto__)
+        console.log(animal.prototype)
+        console.log(animal.prototype === cat.__proto__)
+        console.log(cat.hasOwnProperty('constructor'))
+        console.log(Object.__proto__)
+        console.log(Object.__proto__.__proto__)
+        console.log(Object.prototype)
+        console.log(Object.prototype.__proto__)
+        console.log(cat instanceof animal)
+        // 声明提前
+        // console.log(foo)
+        // function foo(){
+        //     console.log(1)
+        // }
+        let foo = function () { console.log(1) };
+        // (function foo() {
+        //     foo = 10  // 由于foo在函数中只为可读，因此赋值无效
+        //     console.log(foo)
+        // }())
+
+// 结果打印：  ƒ foo() { foo = 10 ; console.log(foo) }
+
+    </script>
+
+    <script>
+        // 继承
+        function Parent1(name, age) {
+            this.name = name
+            this.age = age
+            console.log('parent1 invoke')
+        }
+
+        function Child1(school, favior) {
+            this.school = school
+            this.favior = favior
+            Parent1.call(this, '秦', '29')
+        }
+
+        Child1.prototype = new Parent1('李明', '28')
+
+        var child1 = new Child1('复兴路', '乒乓')
+        var child2 = new Child1('复兴路2', '乒乓2')
+    </script>
+    <script>
+        // 防抖节流
+        function debounce(fn, wait, immediate) {
+            var timer = null
+            return function () {
+                var context = this
+                var args = arguments
+                // 立即执行
+                if (immediate && !timer) {
+                    fn.apply(context, args)
+                }
+
+                if (timer) {
+                    clearTimeout(timer)
+                }
+                timer = setTimeout(() => {
+                    fn.apply(context, args)
+                }, wait)
+            }
+        }
+
+        var d1 = debounce(function () {
+            console.log('hahaha')
+        }, 500)
+        d1('测试啊')
+
+
+        function throttle(fn, wait, immediate) {
+            var timer = null
+            var callNow = immediate
+
+            return function () {
+                var args = arguments, context = this;
+
+                // 立即执行
+                if (callNow) {
+                    fn.apply(context, args)
+                    callNow = false
+                }
+
+                if (!timer) {
+                    timer = setTimeout(() => {
+                        fn.apply(context, args)
+                        timer = null
+                    }, wait)
+                }
+            }
+        }
+
+        var t1 = throttle(() => {
+            console.log('节流', Date.now())
+        }, 2000, true)
+
+        setInterval(() => {
+            t1()
+        }, 100)
+    </script>
+</body>
+
+</html>

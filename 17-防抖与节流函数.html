@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>防抖节流</title>
+</head>
+
+<body>
+    <h1>防抖节流</h1>
+    <script>
+        // 防抖函数
+        function debounce(fn, wait, immediate) {
+            var timer = null
+            return function () {
+                // 立即执行
+                if (immediate && !timer) {
+                    fn.apply(this, arguments)
+                }
+                if (timer) clearTimeout(timer)
+                timer = setTimeout(fn.apply(this, arguments), wait)
+            }
+        }
+
+        // 节流函数
+        function throttle(fn, wait, immediate) {
+            var callNow = immediate
+            var timer = null
+            return function () {
+                if (callNow) {
+                    fn.apply(this, arguments)
+                    callNow = null
+                }
+
+                if (!timer) {
+                    timer = setTimeout(() => {
+                        fn.apply(this, arguments);
+                        timer = null
+                    }, wait)
+                }
+            }
+        }
+    </script>
+</body>
+
+</html>

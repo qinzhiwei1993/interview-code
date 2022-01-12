@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Promise</title>
+</head>
+
+<body>
+    <h1>手写Promise</h1>
+    <script>
+        // promisify 将回调函数 Promise化
+        function promisify(fn) {
+            return function (...args) {
+                return new Promise((resolve, reject) => {
+                    args.push(function callback(err, ...values) {
+                        if (err) {
+                            return reject(err)
+                        }
+                        return resolve(values)
+                    })
+                    fn.apply(this, args)
+                })
+            }
+        }
+
+        // 红绿灯问题 红灯3秒亮一次 绿灯一秒 黄灯两秒
+        function red() {
+            console.log('红灯');
+        }
+        function green() {
+            console.log('绿灯');
+        }
+        function yellow() {
+            console.log('黄灯');
+        }
+
+        function light(fn, seconds) {
+            return new Promise(resolve => {
+                setTimeout(() => {
+                    fn()
+                    resolve()
+                }, seconds)
+            })
+        }
+
+        function step() {
+            Promise.resolve().then(() => {
+                return light(red, 3000)
+            }).then(() => {
+                return light(green, 1000)
+            }).then(() => {
+                return light(yellow, 1000)
+            }).then(() => {
+                step()
+            })
+        }
+        // step()
+    </script>
+
+    <script>
+        // Promise/A+规范特征
+        // 1.有3种状态pending, fulfilled, rejected，有两种状态变更pending => fulfilled 和 pending => rejected
+        // 2.new Promise实例化接受一个参数，这个参数是个函数，这个函数是立即执行的
+        // 3.这个函数中有两个参数，分别是resovle和reject，用来变更Promise的状态
+        // 4.有then方法，接受两个参数，一个是成功的回调，一个是失败的回调
+        // 5.Promise有一个value保存成功的值，在调用.then的时候如果成功，执行onFulFilled函数，返回value值。还有一个reason值，保存失败原因，在执行onRejected的时候返回
+        (() => {
+            const PENDING = 'PENDING'
+            const FULFILLED = 'FULFILLED'
+            const REJECTED = 'REJECTED'
+
+            class Promise {
+                constructor(exectuor) {
+                    // 存放成功状态的值，默认为 undefined
+                    this.value = null
+                    // 存放失败状态的值，默认为 undefined
+                    this.reason = null
+                    // 默认状态为 PENDING
+                    this.status = PENDING
+
+                    // 成功回调
+                    this.onFulFilledFunctions = []
+                    // 失败回调
+                    this.onRejectedFunctions = []
+
+                    // 改变Promise的状态为FULFILLED，并把成功的值保存到value
+                    const resolve = (value) => {
+                        // 避免执行两次
+                        if (this.status === PENDING) {
+                            this.status = FULFILLED
+                            this.value = value
+                            for (let fn of this.onFulFilledFunctions) {
+                                fn()
+                            }
+                        }
+                    }
+
+                    // 改变Promise状态为REJECTED，并把失败原因保存到reason
+                    const reject = (reason) => {
+                        // 避免执行两次
+                        if (this.status === PENDING) {
+                            this.status = REJECTED
+                            this.reason = reason
+                            for (let fn of this.onRejectedFunctions) {
+                                fn()
+                            }
+                        }
+                    }
+
+                    try {
+                        // 立即执行，将 resolve 和 reject 函数传给使用者  
+                        exectuor.call(this, resolve, reject)
+                    } catch (error) {
+                        // 发生异常时执行失败逻辑
+                        reject(error)
+                    }
+                }
+
+                then(onFulFilled, onRejected) {
+                    // resolve, reject是异步操作
+                    if (this.status === PENDING) {
+                        // 如果promise的状态是 pending，需要将 onFulfilled 和 onRejected 函数存放起来，等待状态确定后，再依次将对应的函数执行
+                        if (typeof onFulFilled === 'function') {
+                            this.onFulFilledFunctions.push(() => onFulFilled(this.value))
+                        }
+
+                        if (typeof onRejected === 'function') {
+                            this.onRejectedFunctions.push(() => onRejected(this.reason))
+                        }
+
+                    } else {
+                        if (this.status === FULFILLED) {
+                            // 即刻调用的弊端在于如果resolve是异步，那么不会执行onFulFilled函数
+                            // 解决方案：改用订阅发布模式: 收集依赖 => 触发通知 => 取出依赖执行
+                            onFulFilled(this.value)
+
+                        }
+
+                        if (this.status === REJECTED) {
+                            // onRejected(this.reason)
+                            this.onRejectedFunctions.push(onRejected)
+                        }
+                    }
+
+                }
+            }
+
+            const p1 = new Promise((resolve, reject) => {
+                console.log('resolve before')
+                setTimeout(() => {
+                    resolve('resovle p1')
+                }, 2000)
+                console.log('resolve after')
+            }).then(console.log)
+        })()
+    </script>
+
+</body>
+
+</html>

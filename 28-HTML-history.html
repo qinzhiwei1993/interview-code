@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HTML history API</title>
+</head>
+
+<body>
+    <button id="forward">前进</button>
+    <button id="back">后退</button>
+    <button id="bar">bar路由</button>
+    <script>
+
+        forward.addEventListener('click', () => {
+            history.forward()
+        })
+
+        back.addEventListener('click', () => {
+            history.back()
+        })
+
+        bar.addEventListener('click', () => {
+            let stateObj = {
+                foo: "./bar",
+            };
+            history.pushState(stateObj, "page 2", "./bar");
+        })
+
+        window.onpopstate = function (e) {
+            console.log('history状态变更', e)
+        }
+    </script>
+</body>
+
+</html>

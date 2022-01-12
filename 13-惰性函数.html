@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>惰性函数</title>
+</head>
+
+<body>
+    <h1>惰性函数</h1>
+    <script>
+        var t = null
+        function foo() {
+            if (t) return t
+            t = new Date()
+            return t
+        }
+    </script>
+    <script>
+        var foo2 = function () {
+            var t = new Date();
+            foo2 = function () {
+                return t;
+            };
+            return foo2();
+        };
+
+        foo2()
+        foo2()
+
+    </script>
+</body>
+
+</html>
